@@ -4,10 +4,14 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.forge.addon.dependencies.builder.CoordinateBuilder;
+import org.jboss.forge.addon.facets.FacetFactory;
+import org.jboss.forge.addon.facets.FacetNotFoundException;
 import org.jboss.forge.addon.parser.java.facets.JavaSourceFacet;
 import org.jboss.forge.addon.projects.Project;
 import org.jboss.forge.addon.projects.ProjectFacet;
@@ -31,12 +35,13 @@ import org.jboss.forge.parser.JavaParser;
 import org.jboss.forge.parser.java.JavaClass;
 import org.jboss.windup.metadata.type.archive.ArchiveMetadata;
 import org.jboss.windup.reporting.Reporter;
+import org.switchyard.tools.forge.plugin.SwitchYardFacet;
 
 public class SwitchyardForgeController implements Reporter
 {
 	
 	@Inject
-	
+	public FacetFactory facetFactory;
 
    private static final Log LOG = LogFactory.getLog(SwitchyardForgeController.class);
    {
@@ -84,9 +89,20 @@ public class SwitchyardForgeController implements Reporter
             Project project = projectFactory.createProject(projectDir, facetsToInstall);
             if (project != null)
             {
+            	if(this.facetFactory==null){
+            		LOG.info("facetFactory is null");
+            	}else{
+            		LOG.info("facetFactory is NOT null");
+            		this.facetFactory.install(project, SwitchYardFacet.class);
+            	}
                LOG.info("Project created: " + project);
                project.getFacet(JavaSourceFacet.class).saveJavaSource(
                         JavaParser.create(JavaClass.class).setPackage("com.example").setName("ExampleClass"));
+            }
+            try{
+            	SwitchYardFacet switchYardFacet = project.getFacet(SwitchYardFacet.class);
+            }catch(FacetNotFoundException ex){
+            	ex.printStackTrace();
             }
 
          }
